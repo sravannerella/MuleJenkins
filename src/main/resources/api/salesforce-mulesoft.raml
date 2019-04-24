@@ -1,0 +1,129 @@
+#%RAML 1.0
+title: Mule Salesforce Integration
+description: This is a sample salesforce Integration with Mulesoft.
+mediaType:
+  - application/json
+version: "1.0"
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/ba4afa26-c029-431e-b9f6-9a31a7e8c065/ # baseUri: localhost:8080
+
+types:
+  AccountDetails:
+    properties:
+      username:
+        description: Required Username
+        example: akhil123
+        type: string
+        maxLength: 8
+      email:
+        description: Email for the username
+        example: aki@mail.com
+        type: string
+      firstName:
+        description: User's Firstname
+        example: Akhil
+        type: string
+      lastName:
+        description: User's lastname
+        example: Nerella
+        type: string
+        maxLength: 8
+      company:
+        description: Company where the user works
+        example: Openlogix Corporation
+        type: string
+      title:
+        description: User's title in the company
+        example: Integration Engineer
+        type: string
+      address:
+        description: Users company address
+        example: 645 Hulet Dr, Bloomfield Hills, MI
+        type: string
+      phone:
+        description: User phone number
+        example: (249)876-6781
+        type: string
+        required: false
+      language:
+        description: User spoken language
+        example: English
+        type: string
+
+  AccountDetailsWithID:
+    properties:
+      id:
+        description: "User Account ID"
+        example: 1
+        type: number
+        required: true
+      account:
+        description: "The whole Account Object"
+        type: AccountDetails
+        example: |
+          {
+            "username": "akhil132",
+            "email": "aki@mail.com",
+            "firstName": "Akhil",
+            "lastName": "Nerella",
+            "company": "Openlogix Corporation",
+            "title": "Integration Engineer",
+            "address": "645 Hulet Dr, Bloomfeild Hills, MI",
+            "language": "English"
+          }
+
+
+/user:
+  post:
+    description: "Create a user in salesforce"
+    body: 
+      application/json:
+        example:
+          {
+              "Username": "akhil132",
+              "Email": "aki@mail.com",
+              "Alias": "ANerella",
+              "FirstName": "Akhil",
+              "IsActive": true,
+              "LastName": "Nerella",
+              "Company": "Openlogix Corporation",
+              "Title": "Integration Engineer",
+              "LocaleSidKey": "en_US",
+              "LanguageLocaleKey": "en_US"
+          }
+    responses:
+      200:
+        description: Created User
+        body:
+          application/json:
+            example: |
+              {
+                "created": true,
+                "description": "Successful created user"
+              }
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            example: |
+              {
+                "created": false,
+                "description": "Bad Request"
+              }
+
+  get:
+    description: "Get Users from the Salesforce"
+    responses:
+      200:
+        body:
+          application/json:
+            type:
+              - AccountDetailsWithID[]
+  /{id}:
+    get:
+      description: "Get Users from Salesforce by ID"
+      responses:
+        200:
+          body:
+            application/json:
+              type:
+                - AccountDetailsWithID

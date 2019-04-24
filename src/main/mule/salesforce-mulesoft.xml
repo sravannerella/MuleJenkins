@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <http:listener-config name="salesforce-mulesoft-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="salesforce-mulesoft-config" raml="salesforce-mulesoft.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="8411daa3-2c52-4e62-a345-6fed711e1b11">
+        <salesforce:basic-connection username="snerella@open-logix.com" password="Surya1234" securityToken="ERrTZAsSuM4QhvVHY33YhWOhF" />
+    </salesforce:sfdc-config>
+    <configuration-properties doc:name="Configuration properties" doc:id="d8745ce1-d9bc-426b-a139-eec93b729b8f" file="config.yaml" />
+    <flow name="salesforce-mulesoft-main">
+        <http:listener config-ref="salesforce-mulesoft-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]" />
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <logger level="INFO" doc:name="Logger" doc:id="78b09dd8-669b-448f-b6c6-a574f29a57aa" message='#[%dw 2.0
+output application/json
+
+---
+{
+	msg: "USER REQUEST",
+	payload: payload
+}]' category="splunk.logger" />
+		<apikit:router config-ref="salesforce-mulesoft-config" />
+		<error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST" enableNotifications="true" logException="true">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND" enableNotifications="true" logException="true">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED" enableNotifications="true" logException="true">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE" enableNotifications="true" logException="true">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE" enableNotifications="true" logException="true">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED" enableNotifications="true" logException="true">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="53624b07-63e8-4079-a99a-499dae7cca51">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[501]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="041c6641-4825-423d-aafb-cdcb18e1512a" type="ANY">
+                <logger level="ERROR" doc:name="Logger" doc:id="021b9554-5832-4105-ab06-cb09ce4ba7aa" message='#[%dw 2.0
+output application/json
+---
+{
+	error: "CONNECTION ERROR",
+	payload: payload
+}]' category="splunk.error"/>
+				<set-payload value="#[%dw 2.0 output application/json --- {  message: error }]" doc:name="Set Payload" doc:id="c26e3c42-55e4-43f4-8f92-a8e72150fa2e" />
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="salesforce-mulesoft-console">
+        <http:listener config-ref="salesforce-mulesoft-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="salesforce-mulesoft-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\user:salesforce-mulesoft-config">
+		<salesforce:query doc:name="Query" doc:id="198227fb-dc67-47bb-a55d-af5e13aee729" config-ref="Salesforce_Config">
+            <error-mapping sourceType="SALESFORCE:CONNECTIVITY" targetType="APP:CONNECT_ISSUE" />
+            <salesforce:salesforce-query>SELECT username, languagelocalekey, firstname, lastname, title, email, phone, companyname, employeenumber, street, city, state, postalcode FROM User</salesforce:salesforce-query>
+        </salesforce:query>
+        <ee:transform doc:name="Transform Message" doc:id="65b76337-6da5-48f1-90fe-9b9039aa24b6">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	id: (payload01.EmployeeNumber as Number default 0),
+	account: {
+		firstName: payload01.FirstName default "",
+		lastName: payload01.LastName default "",
+		address: (((payload01.Street default "") ++ "," ++ (payload01.City default "")) ++ "," ++ (payload01.State default "")) ++ "," ++ (payload01.PostalCode default ""),
+		phone: payload01.Phone,
+		company: payload01.CompanyName default "",
+		language: payload01.LanguageLocaleKey default "",
+		title: payload01.Title default "",
+		email: payload01.Email default "",
+		username: payload01.Username default ""
+	}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" message='#[%dw 2.0
+output application/json
+---
+{
+	message: "RESPONSE",
+	response: payload
+}]' category="splunk.logger" doc:id="66296aff-c5ba-443a-bca2-46b3c98292c6"/>
+        <error-handler>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7a5615d4-b50f-4644-abfd-8f6e62fdceb0" type="APP:CONNECT_ISSUE">
+				<set-payload value="#[%dw 2.0 output application/json --- {  error: &quot;Unable to Connect to Salesforce or Invalid Query&quot; }]" doc:name="Set Payload" doc:id="e660ee7e-1e2c-4e51-941d-54d70b40b1b6" />
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\user\(id):salesforce-mulesoft-config">
+        <salesforce:query doc:name="Query" doc:id="434dc97e-d5fa-4611-abcc-d937811cfdf1" config-ref="Salesforce_Config">
+            <error-mapping sourceType="SALESFORCE:CONNECTIVITY" targetType="APP:CONNECT_ISSUE" />
+            <salesforce:salesforce-query>SELECT username, languagelocalekey, firstname, lastname, title, email, phone, companyname, employeenumber, street, city, state, postalcode FROM User WHERE employeenumber=:id</salesforce:salesforce-query>
+            <salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"id" : "'" ++ attributes.uriParams.id ++ "'"
+}]]]></salesforce:parameters>
+        </salesforce:query>
+        <ee:transform doc:name="Copy_of_Transform Message" doc:id="b369d825-ba52-4dbc-901f-d94805499370">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	id: (payload01.EmployeeNumber as Number default 0),
+	account: {
+		firstName: payload01.FirstName default "",
+		lastName: payload01.LastName default "",
+		address: (((payload01.Street default "") ++ "," ++ (payload01.City default "")) ++ "," ++ (payload01.State default "")) ++ "," ++ (payload01.PostalCode default ""),
+		phone: payload01.Phone,
+		company: payload01.CompanyName default "",
+		language: payload01.LanguageLocaleKey default "",
+		title: payload01.Title default "",
+		email: payload01.Email default "",
+		username: payload01.Username default ""
+	}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" message="get:\user\(id):salesforce-mulesoft-config" category="splunk.logger"/>
+    </flow>
+    <flow name="post:\user:application\json:salesforce-mulesoft-config">
+        <salesforce:create-single type="User" doc:name="Create single" doc:id="923d1480-acc2-4473-82f1-2d899320a20b" config-ref="Salesforce_Config" />
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  created: true,
+  description: "Successful created user"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\user:salesforce-mulesoft-config">
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  created: true,
+  description: "Successful created user"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>
