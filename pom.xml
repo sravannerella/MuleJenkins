@@ -24,22 +24,16 @@
 				<version>3.1.6</version>
 				<extensions>true</extensions>
 				<configuration>
-					<deploymentType>cloudhub</deploymentType>
-					<muleVersion>4.1.4</muleVersion>
-					<username>sravan143</username>
-					<password>Surya1234</password>
-					<redeploy>true</redeploy>
-					<environment>Sandbox</environment>
+					<cloudHubDeployment>
+						<uri>https://anypoint.mulesoft.com</uri>
+						<muleVersion>4.1.5</muleVersion>
+						<username>sravan143</username>
+						<password>Surya1234</password>
+						<applicationName>salesforcemulesoftJenkinsApp</applicationName>
+						<environment>Sandbox</environment>
+						<workerType>MICRO</workerType>
+					</cloudHubDeployment>
 				</configuration>
-				<executions>
-					<execution>
-						<id>deploy</id>
-						<phase>deploy</phase>
-						<goals>
-							<goal>deploy</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>
