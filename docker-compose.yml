@@ -1,0 +1,27 @@
+version: '3'
+
+services: 
+  jenkins:
+    container_name: jenkinsServerNetwork
+    image: jenkins/jenkins
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes: 
+      - /home/sravan/Desktop/Jenkins:/home/sravan/Desktop/Jenkins jenkins/jenkins
+  
+  splunk:
+    ports:
+      - '8000:8000'
+      - '8500:8500'
+      - '9997:9997'
+    expose:
+      - 8500
+    environment:
+      - SPLUNK_START_ARGS: --accept-license
+      - SPLUNK_ENABLE_LISTEN: 9997
+      - SPLUNK_ADD: tcp 8500
+      - SPLUNK_USER: admin
+      - SPLUNK_PASSWORD: password
+    container_name: splunkSocket
+    image: splunk/splunk

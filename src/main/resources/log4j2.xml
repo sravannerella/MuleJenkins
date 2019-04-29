@@ -21,6 +21,10 @@
         </Socket>
         
         <Http name="http" url="http://192.168.75.129:8088" token="83d93f89-fd92-473e-834c-fd038981f28d" disableCertificationValidation="true">
+			<PatternLayout pattern="%d{HH:mm:ss} [%t] %level: %m%n" charset="UTF-8" />
+        </Http> 
+		
+		<Http name="http" url="http://192.168.75.129:8088" token="2ebb9de7-8d96-477c-b85c-83e61f4fc4b8" disableCertificationValidation="true">
         	<PatternLayout pattern="%d{HH:mm:ss} [%t] %level: %m%n" charset="UTF-8" />
         </Http> 
         

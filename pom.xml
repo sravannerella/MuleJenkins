@@ -33,6 +33,10 @@
 						<environment>Sandbox</environment>
 						<workerType>MICRO</workerType>
 					</cloudHubDeployment>
+					<!-- <standaloneDeployment>
+                        <muleHome>172.17.0.1</muleHome>
+                        <muleVersion>4.1.5</muleVersion>
+                    </standaloneDeployment> -->
 				</configuration>
 			</plugin>
 		</plugins>
